@@ -1,0 +1,41 @@
+{
+  "name": "kosho-gate",
+  "version": "1.0.0",
+  "description": "DSH Web 插件（自 chicheng-gate 独立改造）：局域网/远程访问控制、frpc 内网穿透、面板密码门禁与手机端 UI 适配。",
+  "author": "Franktolin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Franktolin/kosho-gate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Franktolin/kosho-gate/issues"
+  },
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": ["lib", "cordis.patch.yml", "README.md", "LICENSE"],
+  "keywords": ["dsh", "dsh-plugin", "kosho-gate", "lan", "frp", "frpc", "tunnel", "remote-access", "mobile"],
+  "engines": { "node": ">=20" },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "schemastery": "^3.18.0"
+  },
+  "dependencies": { "schemastery": "^3.18.0" },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ],
+      "platform": "web"
+    }
+  }
+}
