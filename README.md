@@ -154,6 +154,20 @@ cmd /c mklink /J "E:\code\dsh\.dsh-data\profiles\web\node_modules\kosho-gate" "E
 5. 修复 `checkoutRoot()`：补丁目标从 `process.argv[1]` 推断的源码根，改为 `DSH_HOME/profiles`，否则补丁永远打不上、远程设置锁死。
 6. 包名 chicheng-gate → kosho-gate；UI 名「赤橙网关」→「kosho网关」。
 
+### 发布更新（改代码 → 推 GitHub）
+
+1. 改 `my-plugins/kosho-gate/lib/*.js`，重启 dsh web 测试。
+2. 测试通过后提交并推送：
+
+    cd E:\code\dsh\my-plugins\kosho-gate
+    git add -A
+    git commit -m "描述改动"
+    git push
+
+3. 其他电脑更新：重新 `dsh plugin --profile web add github:Franktolin/kosho-gate`（或升级依赖）。
+
+> git 已配置全局代理 `127.0.0.1:7892`，push 需代理在线；若代理离线，先 `git config --global --unset http.proxy` 和 `git config --global --unset https.proxy`。
+
 ---
 
 ## License
