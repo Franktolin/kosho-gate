@@ -156,6 +156,7 @@ cmd /c mklink /J "E:\code\dsh\.dsh-data\profiles\web\node_modules\kosho-gate" "E
 7. 隧道网关转发时把请求 **Host 改写为 `127.0.0.1:<DSH端口>` 并删除 Origin**：密码门禁验证通过后，上游 DSH 一律按本机信任处理，一次性放行 dsh 官方 RPC（settings/credentials）与 @linxin666 全家桶（git-graph / dsh-ssh / task-board）的 loopback-only 检查。**安全模型：过了面板密码 = 本机权限**。
 8. 内测声明确认持久化：patch `dsh-client-ui-settings-models` 客户端 bundle，把欢迎步骤的持久化从 `connection.isLoopback ? "host" : "memory"` 强制为 `"host"`——公网（隧道）浏览器地址栏是公网 IP 被判定为非 loopback，原本确认只存在于进程内、每次打开都重弹「内测声明」，patch 后确认真正写入 Host 设置 `ui-onboarding.welcomeNoticeVersion`（只放开这一个字段）。
 9. 手机端输入栏折叠：触屏窄容器（`@container (max-width: 560px)`）下，权限选择与模型选择收起为固定短文本「权限」「模型」，点击展开后菜单仍显示完整详情（aria-label/title 保留完整名称，无障碍信息不丢）。
+10. dsh rc.6 及更早兼容：rc.6 的 `dsh-host-apiproxy` 用静态白名单 `WEB_SETTINGS_NAMESPACES` 决定哪些命名空间对 Web 客户端可见/可写（插件自注册暴露是 rc.7 才有的能力），kosho-gate 不在白名单 → 客户端 `settings.describe` 看不到它 → 设置页全部控件因 `consented` 读不到而禁用。新增 ALWAYS 补丁把 `kosho-gate` 注入白名单数组（rc.7+ 数组已删除 → 补丁自动 no-op）。
 
 ### 发布更新（改代码 → 推 GitHub）
 
