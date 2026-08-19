@@ -139,11 +139,11 @@ cmd /c mklink /J "E:\code\dsh\.dsh-data\profiles\web\node_modules\kosho-gate" "E
 
 ### 补丁与 dsh 升级
 
-本插件启动时会对 3 个官方文件打源码补丁（放开远程设置、设置导航图标），首次打补丁前自动备份为 `.kosho-gate.bak`，关闭「远程访问」时还原。
+本插件启动时会对多个官方文件打源码补丁（放开远程设置、内测声明确认持久化、设置导航图标、手机端设置面板适配），首次打补丁前自动备份为 `.kosho-gate.bak`，关闭「远程访问」时还原（REMOTE/MOBILE 系列）。
 
 - dsh 升级（重装 profile 依赖）会把这些官方文件覆盖回原版，补丁失效 → 远程设置重新锁死。重启 dsh web 会自动重打补丁，前提是官方文件结构没变。
 - 若官方升级改了文件结构导致补丁字符串失配，补丁会静默失效（打不上），需对照新版文件更新 `lib/index.js` 里的 `REMOTE_PATCHES` / `MOBILE_PATCHES` / `ALWAYS_PATCHES` 的匹配串。
-- **dsh 升级后**：先删除三个 `.kosho-gate.bak` 文件（`dsh-client-connection/lib/index.js.kosho-gate.bak`、`dsh-client-ui-settings/lib/client.js.kosho-gate.bak`、`dsh-client-ui-settings-general/lib/client.js.kosho-gate.bak`），让插件用新版文件重新备份，避免"关闭远程访问"时用旧备份降级官方文件。
+- **dsh 升级后**：先删除所有 `.kosho-gate.bak` 文件（`profiles/node_modules` 下 `dsh-client-connection/lib/index.js`、`dsh-client-ui-settings/lib/client.js`、`dsh-client-ui-settings-models/lib/client.js`、`dsh-client-ui-settings-general/lib/client.js` 等），让插件用新版文件重新备份，避免"关闭远程访问"时用旧备份降级官方文件。
 
 ### 相对原版 chicheng-gate 的改动
 
@@ -154,6 +154,8 @@ cmd /c mklink /J "E:\code\dsh\.dsh-data\profiles\web\node_modules\kosho-gate" "E
 5. 修复 `checkoutRoot()`：补丁目标从 `process.argv[1]` 推断的源码根，改为 `DSH_HOME/profiles`，否则补丁永远打不上、远程设置锁死。
 6. 包名 chicheng-gate → kosho-gate；UI 名「赤橙网关」→「kosho网关」。
 7. 隧道网关转发时把请求 **Host 改写为 `127.0.0.1:<DSH端口>` 并删除 Origin**：密码门禁验证通过后，上游 DSH 一律按本机信任处理，一次性放行 dsh 官方 RPC（settings/credentials）与 @linxin666 全家桶（git-graph / dsh-ssh / task-board）的 loopback-only 检查。**安全模型：过了面板密码 = 本机权限**。
+8. 内测声明确认持久化：patch `dsh-client-ui-settings-models` 客户端 bundle，把欢迎步骤的持久化从 `connection.isLoopback ? "host" : "memory"` 强制为 `"host"`——公网（隧道）浏览器地址栏是公网 IP 被判定为非 loopback，原本确认只存在于进程内、每次打开都重弹「内测声明」，patch 后确认真正写入 Host 设置 `ui-onboarding.welcomeNoticeVersion`（只放开这一个字段）。
+9. 手机端输入栏折叠：触屏窄容器（`@container (max-width: 560px)`）下，权限选择与模型选择收起为固定短文本「权限」「模型」，点击展开后菜单仍显示完整详情（aria-label/title 保留完整名称，无障碍信息不丢）。
 
 ### 发布更新（改代码 → 推 GitHub）
 
