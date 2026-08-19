@@ -153,6 +153,7 @@ cmd /c mklink /J "E:\code\dsh\.dsh-data\profiles\web\node_modules\kosho-gate" "E
 4. 隧道网关对文本响应加 gzip 压缩，大幅加速公网加载（前端资源 6.59MB → 约 1.4MB）。
 5. 修复 `checkoutRoot()`：补丁目标从 `process.argv[1]` 推断的源码根，改为 `DSH_HOME/profiles`，否则补丁永远打不上、远程设置锁死。
 6. 包名 chicheng-gate → kosho-gate；UI 名「赤橙网关」→「kosho网关」。
+7. 隧道网关转发时把请求 **Host 改写为 `127.0.0.1:<DSH端口>` 并删除 Origin**：密码门禁验证通过后，上游 DSH 一律按本机信任处理，一次性放行 dsh 官方 RPC（settings/credentials）与 @linxin666 全家桶（git-graph / dsh-ssh / task-board）的 loopback-only 检查。**安全模型：过了面板密码 = 本机权限**。
 
 ### 发布更新（改代码 → 推 GitHub）
 
