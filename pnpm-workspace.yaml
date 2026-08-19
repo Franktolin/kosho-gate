@@ -1,0 +1,5 @@
+# Standalone pnpm root for this plugin: my-plugins/ is not part of the dsh
+# monorepo workspace, so pnpm must not walk up into E:\code\dsh. This makes
+# `pnpm install` here install the plugin's own dependencies into its local
+# node_modules, which is what lets Node resolve `schemastery` from lib/index.js.
+packages: []
