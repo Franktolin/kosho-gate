@@ -25,6 +25,7 @@ DSH Web GUI 插件：远程访问控制 + frpc 内网穿透 + 面板密码门禁
 ## 功能特性
 
 - 远程访问开关（默认关）：切换 0.0.0.0 与 127.0.0.1 绑定；关闭时还原全部修改。
+- 远端免 token（默认开）：信任宿主（局域网 / frpc 公网地址 / 0.0.0.0，即 connection.trustedHosts）以及**经网关改写成 loopback（127.0.0.1 / localhost / 127/8）的公网路径**访问时，跳过 dsh 的一次性 BrowserAuth token URL；关闭则恢复要 token。仅作用于 dsh 自身 Web 鉴权，公网路径仍先过面板密码门禁。
 - frpc 内网穿透（默认关，实时开关）：启动时自动从 GitHub Releases 下载 frpc（带 SHA256 校验，失败回退手动路径），生成 frpc.toml 并拉起；取消勾选立即停止。配置项：服务器地址/端口、token 验证、本机端口、远程端口。
 - 面板密码门禁：非 127.0.0.1 来源必须先通过密码验证；密码只存加盐哈希，带登录限速（5 次/分/IP）与 7 天会话。
 - 独立密码网关：frpc 隧道不直连 DSH，而是先经过一个本地密码网关（127.0.0.1 的「本机端口」，默认 3081），验证通过后才转发到 DSH 主端口 3080——这样公网隧道也需要密码，而本机 127.0.0.1 免密访问不受影响。
@@ -100,6 +101,7 @@ DSH Web GUI 插件：远程访问控制 + frpc 内网穿透 + 面板密码门禁
     kosho-gate:
       consented: false
       remoteEnabled: false
+      remoteNoDshToken: true
       mobileUi: true
       frpcEnabled: false
       frpcServerAddr: ""
@@ -139,11 +141,13 @@ cmd /c mklink /J "E:\code\dsh\.dsh-data\profiles\web\node_modules\kosho-gate" "E
 
 ### 补丁与 dsh 升级
 
-本插件启动时会对多个官方文件打源码补丁（放开远程设置、内测声明确认持久化、设置导航图标、手机端设置面板适配），首次打补丁前自动备份为 `.kosho-gate.bak`，关闭「远程访问」时还原（REMOTE/MOBILE 系列）。
+本插件启动时会对多个官方文件打源码补丁（放开远程设置、内测声明确认持久化、设置导航图标、手机端设置面板适配、远端免 token 的 connection BrowserAuth 放行），首次打补丁前自动备份为 `.kosho-gate.bak`，关闭「远程访问」时还原（REMOTE/MOBILE 系列）。
 
 - dsh 升级（重装 profile 依赖）会把这些官方文件覆盖回原版，补丁失效 → 远程设置重新锁死。重启 dsh web 会自动重打补丁，前提是官方文件结构没变。
 - 若官方升级改了文件结构导致补丁字符串失配，补丁会静默失效（打不上），需对照新版文件更新 `lib/index.js` 里的 `REMOTE_PATCHES` / `MOBILE_PATCHES` / `ALWAYS_PATCHES` 的匹配串。
 - **dsh 升级后**：先删除所有 `.kosho-gate.bak` 文件（`profiles/node_modules` 下 `dsh-client-connection/lib/index.js`、`dsh-client-ui-settings/lib/client.js`、`dsh-client-ui-settings-models/lib/client.js`、`dsh-client-ui-settings-general/lib/client.js` 等），让插件用新版文件重新备份，避免"关闭远程访问"时用旧备份降级官方文件。
+- **host 补丁要打 `src/*.ts`（源码模式）**：本机 `pnpm dsh web` 走 tsx 源码（`node --import tsx/esm apps/cli/src/bin.ts`），`tsconfig.base.json` 的 `paths` 把 `@deepseek-ai/dsh-client-connection` 解析到 `packages/client/connection/src`。因此「远端免 token」的 connection 放行补丁用 `srcFile: "packages/client/connection/src/browser-auth.ts"`（运行时真身），`file:` 指向的 `lib` bundle 仅对「安装态 harness」生效、对源码模式是死代码。
+- **公网路径 Host 被改写为 loopback**：隧道网关 `rewriteTunnelHeaders` 把转发到 dsh 的 Host 设为 `127.0.0.1:<DSH端口>`，所以 frpc 公网流量经密码门禁后 dsh 收到的 authority 恒为 loopback。`isKoshoTrustedAuthority` 因此把 **loopback（localhost / `[::1]` / 127/8）** 与 `trustedHosts` 都视为信任来源（公网真正鉴权是密码门禁 3081）。
 
 ### 相对原版 chicheng-gate 的改动
 
